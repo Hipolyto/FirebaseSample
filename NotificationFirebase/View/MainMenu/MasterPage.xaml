@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+    xmlns:local="clr-namespace:NotificationFirebase.View;assembly=NotificationFirebase"
+    x:Class="NotificationFirebase.View.MasterPage"
+    Padding="0,40,0,0"
+    Icon="hamburger.png"
+    Title="Testing">
+	<StackLayout>
+        <ListView x:Name="listView">
+           <ListView.ItemsSource>
+                <x:Array Type="{x:Type local:MasterPageItem}">
+                    <local:MasterPageItem ID="1" Title="Inicio" IconSource="contacts.png" TargetType="{x:Type local:HomePage}" />
+                    <local:MasterPageItem ID="2" Title="Ajustes" IconSource="todo.png" TargetType="{x:Type local:SettingsPage}" />
+                    <local:MasterPageItem ID="3" Title="Acerca De" IconSource="reminders.png" TargetType="{x:Type local:AboutPage}" />
+                    <local:MasterPageItem ID="0" Title="Salir" IconSource="reminders.png" />
+                </x:Array>
+            </ListView.ItemsSource>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Grid Padding="5,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30"/>
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image Source="{Binding IconSource}" />
+                            <Label Grid.Column="1" Text="{Binding Title}" />
+                        </Grid>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
+</ContentPage>

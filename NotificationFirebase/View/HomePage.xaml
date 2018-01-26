@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+    x:Class="NotificationFirebase.View.HomePage"
+    Title="Inicio">
+	<ContentPage.Content>
+        <StackLayout>
+            <Label x:Name="lblMessage" Text="Message" HorizontalOptions="Center" VerticalOptions="CenterAndExpand" />
+            <Entry x:Name="txtTextMessage" HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand" />
+            <Button x:Name="btnSendMessage" Text="Send Message to this device" Clicked="Handle_Clicked" HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand"/>
+            <Button x:Name="btnSendMessageChannel" Text="Send Message to General Channel" Clicked="Handle_ClickedChannel" HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand"/>
+            <Button x:Name="btnUsers" Text="Users" Clicked="Handle_ClickedUsers" HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand"/>
+        </StackLayout>
+	</ContentPage.Content>
+</ContentPage>

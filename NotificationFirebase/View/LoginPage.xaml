@@ -9,7 +9,7 @@
 	<ContentPage.Content>
         <StackLayout VerticalOptions="StartAndExpand">
             <Label Text="Email address" />
-            <Entry x:Name="emailEntry" Placeholder="Email address" Text="ernesto_bst@hotmail.com" />
+            <Entry x:Name="emailEntry" Placeholder="Email address" Text="eroz.bst@gmail.com" />
             <Label Text="Password" />
             <Entry x:Name="passwordEntry" IsPassword="true" Placeholder="Password" Text="eroz0480" />
             <Button Text="Login" Clicked="OnLoginButtonClicked" />

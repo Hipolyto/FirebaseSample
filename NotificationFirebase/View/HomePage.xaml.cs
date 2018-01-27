@@ -92,12 +92,9 @@ namespace NotificationFirebase.View
         }
         void Handle_ClickedUsers(object sender, System.EventArgs e)
         {
-            var users = Xamarin.Forms.DependencyService.Get<IFirebaseManager>().GetUsers();
-            var tokens = Xamarin.Forms.DependencyService.Get<IFirebaseManager>().GetDeviceTokenUserListFromDistance(10.0f,users);
-            foreach(var t in tokens)
-            {
-                Xamarin.Forms.DependencyService.Get<IFirebaseManager>().SendNotificationToDeviceAsync("Mensaje a dispositivos cercanos", t);
-            }
+            double myLatitude = 0.0f;
+            double myLongitude = 0.0f;
+            Xamarin.Forms.DependencyService.Get<IFirebaseManager>().SendNotificationToNearestDevices(5.0f, myLatitude, myLongitude);
         }
     }
 }

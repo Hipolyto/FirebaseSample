@@ -13,6 +13,8 @@ namespace NotificationFirebase.DependencyService
         List<NotificationFirebase.Model.User> GetUsers();
         List<string> GetDeviceTokenUserListFromDistance(double distance, List<NotificationFirebase.Model.User> users);
 
+        void SendNotificationToNearestDevices(double maxDistance, double myLatitude, double myLongitude);
+
         void SignInAsync(string email, string password);
         void SignUpAsync(string email, string password);
         void SignOut();

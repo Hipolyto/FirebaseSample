@@ -272,18 +272,30 @@ namespace NotificationFirebase.Droid
             return userJava;
         }
 
-
+        ValueEventListener valueEventListener = null;
         public List<User> GetUsers()
         {
             List<User> users = null;
             var mDatabase = FirebaseDatabase.Instance.Reference;
-            var query = mDatabase.Child("users").OrderByKey().AddChildEventListener(new ChildEventListener());
+            valueEventListener = mDatabase.Child("users").OrderByKey().AddValueEventListener(new ValueEventListener()) as ValueEventListener;
 
-            if(query != null)
+            /*if(valueEventListener != null)
             {
-                users = new List<User>();
-            }
+                if(valueEventListener.UsersGet)
+                {
+                    users = valueEventListener.Users;
+                }
+            }*/
             return users;
+        }
+
+        void GetAllUsers(double distance, double myLatitude, double myLongitude)
+        {
+            var mDatabase = FirebaseDatabase.Instance.Reference;
+            valueEventListener = mDatabase
+                .Child("users").OrderByKey()
+                .AddValueEventListener(
+                    new ValueEventListener(distance, myLatitude, myLongitude)) as ValueEventListener;
         }
 
         public List<string> GetDeviceTokenUserListFromDistance(double distanceKm, List<User> users)
@@ -312,7 +324,7 @@ namespace NotificationFirebase.Droid
             return tokens;
         }
 
-        private double GetDistanceInKm(double lat1, double lon1, double lat2, double lon2)
+        private static double GetDistanceInKm(double lat1, double lon1, double lat2, double lon2)
         {
             const double R = 6378.0f; // Km
             double dlat = EnRadianes(lat2 - lat1);
@@ -322,36 +334,117 @@ namespace NotificationFirebase.Droid
             return R - c;
         }
 
-        private double EnRadianes(double valor)
+        private static  double EnRadianes(double valor)
         {
             return ((Math.PI / 180.0f) * valor);
         }
-        public class ChildEventListener : Java.Lang.Object, IChildEventListener
+
+        public void SendNotificationToNearestDevices(double maxDistance, double myLatitude, double myLongitude)
         {
+            GetAllUsers(maxDistance, myLatitude, myLongitude);
+        }
+
+        public class ValueEventListener : Java.Lang.Object, IValueEventListener
+        {
+            List<User> _users = null;
+            //public List<User> Users { get { return _users; } }
+            bool _usersgets = false;
+            //public bool UsersGet { get { return _usersgets; }}
+            double _distance;
+            List<string> _tokens = null;
+            double _myLatitud = 0.0f;
+            double _myLongitud = 0.0f;
+
+            public ValueEventListener()
+            {
+            }
+
+            public ValueEventListener(double distance, double myLatitude, double myLongitude)
+            {
+                this._distance = distance;
+                this._myLatitud = myLatitude;
+                this._myLongitud = myLongitude;
+            }
+
             public void OnCancelled(DatabaseError error)
             {
-                
+
             }
 
-            public void OnChildAdded(DataSnapshot snapshot, string previousChildName)
+            public void OnDataChange(DataSnapshot snapshot)
             {
-                
+                GetAllUsers(snapshot);
+                GetAllNearestTokens();
+                SendNotifications();
             }
 
-            public void OnChildChanged(DataSnapshot snapshot, string previousChildName)
+            void GetAllUsers(DataSnapshot snapshot)
             {
-                NotificationFirebase.Droid.Model.User user = (NotificationFirebase.Droid.Model.User)snapshot.Children.Iterator().Next();
-                System.Console.WriteLine();                                                     
+                if (snapshot != null && snapshot.Exists())
+                {
+                    var obj = snapshot.Children;
+
+                    if (snapshot != null && snapshot.ChildrenCount > 0)
+                    {
+                        _users = new List<User>();
+                    }
+
+                    while (obj.Iterator().HasNext)
+                    {
+                        DataSnapshot snapshotChild = obj.Iterator().Next() as DataSnapshot;
+
+                        if (snapshotChild.GetValue(true) == null) continue;
+
+                        User user = new User();
+                        user.Uid = snapshotChild.Key;
+                        user.DeviceToken = snapshotChild.Child("DeviceToken")?.GetValue(true)?.ToString();
+                        user.Plataforma = snapshotChild.Child("Plataforma")?.GetValue(true)?.ToString();
+
+                        var lat1 = snapshotChild.Child("Latitud")?.GetValue(true)?.ToString();
+                        var lon1 = snapshotChild.Child("Longitud")?.GetValue(true)?.ToString();
+
+                        if (double.TryParse(lat1, out double lat))
+                            user.Latitud = lat;
+
+                        if (double.TryParse(lon1, out double lon))
+                            user.Latitud = lon;
+
+                        _users.Add(user);
+                    }
+                }
+                // return _users;
             }
 
-            public void OnChildMoved(DataSnapshot snapshot, string previousChildName)
+            void GetAllNearestTokens()
             {
-                
+                if (_users != null && _users.Count > 0)
+                {
+                    foreach (User u in _users)
+                    {
+                        if (FirebaseManagerImplementation.GetDistanceInKm(_myLatitud, _myLongitud, u.Latitud, u.Longitud) <= _distance)
+                        {
+                            if (_tokens == null)
+                            {
+                                _tokens = new List<string>();
+
+                            }
+                            _tokens.Add(u.DeviceToken);
+                        }
+                    }
+                }
+                // return _tokens;
             }
 
-            public void OnChildRemoved(DataSnapshot snapshot)
+            void SendNotifications()
             {
-                
+                if(_tokens != null && _tokens.Count > 0)
+                {
+                    FirebaseManagerImplementation fi = new FirebaseManagerImplementation();
+                    foreach(var token in _tokens)
+                    {
+                        fi.SendNotificationToDeviceAsync("Messsage", token);
+                    }
+                }
             }
         }
     }

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Foundation;
-using Plugin.FirebasePushNotification;
 using UIKit;
+
+using Plugin.FirebasePushNotification;
+using Firebase.Auth;
 
 
 
@@ -13,6 +15,7 @@ namespace NotificationFirebase.iOS
     [Register("AppDelegate")]
     public partial class AppDelegate : global::Xamarin.Forms.Platform.iOS.FormsApplicationDelegate
     {
+        Foundation.NSObject authListenerHandle;
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
             global::Xamarin.Forms.Forms.Init();
@@ -26,14 +29,38 @@ namespace NotificationFirebase.iOS
 
             FirebasePushNotificationManager.Initialize(options, true);
 
-            // FirebasePushNotificationManager.Initialize(options, new CustomPushHandler());
+            FirebasePushNotificationManager.Initialize(options, new CustomPushNotificationHandler());
+
+            authListenerHandle = Auth.DefaultInstance.AddAuthStateDidChangeListener((auth, user) => {
+                if (user != null)
+                {
+                    // User is signed in.
+                    // an user is already signin
+                    if (App.IsUserLoggedIn)
+                    {
+                        App.IsUserLoggedIn = true;
+                        //MessagingCenter.Send(App.user, NotificationFirebase.App.MessageSignIn);
+                    }
+                    System.Console.WriteLine("onAuthStateChanged:signed_in:" + user.Uid);
+                }
+                else
+                {
+                    // No user is signed in.
+                    if (App.IsUserLoggedIn)
+                    {
+                        App.IsUserLoggedIn = false;
+                        //MessagingCenter.Send("SignOut", NotificationFirebase.App.MessageSignOut);
+                    }
+                }
+            });
+
 
             return base.FinishedLaunching(app, options);
         }
 
         public override void RegisteredForRemoteNotifications(UIApplication application, NSData deviceToken)
         {
-            //base.RegisteredForRemoteNotifications(application, deviceToken);
+            base.RegisteredForRemoteNotifications(application, deviceToken);
 #if DEBUG
             FirebasePushNotificationManager.DidRegisterRemoteNotifications(deviceToken, FirebaseTokenType.Sandbox);
 #else
@@ -43,7 +70,7 @@ namespace NotificationFirebase.iOS
 
         public override void FailedToRegisterForRemoteNotifications(UIApplication application, NSError error)
         {
-            // base.FailedToRegisterForRemoteNotifications(application, error);
+            base.FailedToRegisterForRemoteNotifications(application, error);
             FirebasePushNotificationManager.RemoteNotificationRegistrationFailed(error);
         }
 
@@ -59,14 +86,14 @@ namespace NotificationFirebase.iOS
             // If you disable method swizzling, you'll need to call this method. 
             // This lets FCM track message delivery and analytics, which is performed
             // automatically with method swizzling enabled.
-            FirebasePushNotificationManager.DidReceiveMessage(userInfo);
+            //FirebasePushNotificationManager.DidReceiveMessage(userInfo);
             // Do your magic to handle the notification data
             System.Console.WriteLine(userInfo);
         }
 
         public override void OnActivated(UIApplication uiApplication)
         {
-            // base.OnActivated(uiApplication);
+            base.OnActivated(uiApplication);
             FirebasePushNotificationManager.Connect();
         }
 

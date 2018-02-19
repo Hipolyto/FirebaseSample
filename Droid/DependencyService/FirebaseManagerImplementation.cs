@@ -13,6 +13,7 @@ using Xamarin.Forms;
 
 using Plugin.CurrentActivity;
 using Plugin.FirebasePushNotification;
+using Plugin.Hud;
 using Firebase;
 using Firebase.Auth;
 using Firebase.Database;
@@ -22,60 +23,57 @@ using NotificationFirebase;
 using NotificationFirebase.Model;
 using NotificationFirebase.DependencyService;
 using System.Collections.Generic;
+using Plugin.Hud.Abstractions;
 
 [assembly: Xamarin.Forms.Dependency(typeof(NotificationFirebase.Droid.FirebaseManagerImplementation))]
 namespace NotificationFirebase.Droid
 {
     public class FirebaseManagerImplementation : IFirebaseManager
     {
+        const string SERVER_KEY = "AAAAAkroygo:APA91bE4amfFJHOYWSdflvwYuOx3GLGdXvfoxNLagSUe2QPfLWWSMlVRommTkrTbeXg9fWBgkgkRb7-BuHFHX0zbdUTb7l6K8sJQf9WeiiMawhlIKry4lBeaUjjGA31C6Nnr66rDjxlm";
+        const string URL_NOTIFICATIONS = "https://fcm.googleapis.com/fcm/send";
+
         public FirebaseManagerImplementation()
         {
         }
-        const string SERVER_KEY = "AAAAAkroygo:APA91bE4amfFJHOYWSdflvwYuOx3GLGdXvfoxNLagSUe2QPfLWWSMlVRommTkrTbeXg9fWBgkgkRb7-BuHFHX0zbdUTb7l6K8sJQf9WeiiMawhlIKry4lBeaUjjGA31C6Nnr66rDjxlm";
-        const string URL = "https://fcm.googleapis.com/fcm/send";
 
         public async void SendNotificationToDeviceAsync(string message, string tokenDevice)
         {
-            var jData = new JObject
-            {
-                { "body", message }
-            };
-            var jGcmData = new JObject
-            {
-                { "to", CrossFirebasePushNotification.Current.Token }, // general
-                { "notification", jData }
-            };
+            CrossHud.Current.Show("Sending Message", -1, MaskType.Clear, true);
 
-            var url = new Uri(URL);
             try
             {
-                using (var client = new HttpClient())
+                var jGcmData = new JObject
                 {
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    { "to", tokenDevice },
+                    { "notification", new JObject{ { "body", message }} }
+                };
+                string json = jGcmData.ToString();
 
-                    client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "key=" + SERVER_KEY);
-                    //System.Threading.Tasks.Task.WaitAll(
-
-                    var response = await client.PostAsync(
-                            url,
-                            new StringContent(jGcmData.ToString(), Encoding.Default, "application/json"));
-                        
-                    //.ContinueWith(HandleAction));
-
-                    if(response != null)
+                using (var handler = new HttpClientHandler())
+                {
+                    using (var client = new HttpClient(handler, true))
                     {
-                        if(response.IsSuccessStatusCode)
+                        using (var request = new HttpRequestMessage(HttpMethod.Post, URL_NOTIFICATIONS))
                         {
-                            Console.WriteLine("Message sent: check client device notification tray");
+                            request.Headers.Add("Accept", "application/json"); //Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                            request.Headers.TryAddWithoutValidation("Authorization", "key=" + SERVER_KEY);
+
+                            request.Content = new StringContent(jGcmData.ToString(), Encoding.UTF8, "application/json");
+
+                            using (var response = await client.SendAsync(request))
+                            {
+
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    Console.WriteLine("Message sent: check client device notification tray");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Message sent response: StatusCode = " + response.StatusCode.ToString() + " message = " + response.ToString());
+                                }
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine("Message sent response: StatusCode = " + response.StatusCode.ToString() + " message = " + response.ToString());
-                        }
-                    }
-                    else
-                    {
-                        Console.Error.WriteLine("Error sending message, return task=null");
                     }
                 }
             }
@@ -84,47 +82,44 @@ namespace NotificationFirebase.Droid
                 Console.WriteLine("Unable to send GCM message");
                 Console.Error.WriteLine(ex.StackTrace);
             }
+
+            CrossHud.Current.Dismiss();
         }
         public async void SendNotificationToChannelAsync(string message, string channel)
         {
-            var jData = new JObject
-            {
-                { "message", message }
-            };
-            var jGcmData = new JObject
-            {
-                { "to", "/topics/"+channel },
-                { "data", jData }
-            };
+            CrossHud.Current.Show("Sending Message", -1, MaskType.Clear, true);
 
-            var url = new Uri(URL);
             try
             {
-                using (var client = new HttpClient())
+                var jGcmData = new JObject
                 {
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    { "to", "/topics/"+channel },
+                    { "data", new JObject { { "message", message } } }
+                };
 
-                    client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "key=" + SERVER_KEY);
-                    //System.Threading.Tasks.Task.WaitAll(
-                    var response = await client.PostAsync(
-                            url,
-                        new StringContent(jGcmData.ToString(), Encoding.Default, "application/json"));
-                    //    .ContinueWith(HandleAction));
+                using (var handler = new HttpClientHandler())
+                {
+                    using (var client = new HttpClient(handler, true))
+                    {
+                        using (var request = new HttpRequestMessage(HttpMethod.Post, URL_NOTIFICATIONS))
+                        {
+                            request.Headers.Add("Accept", "application/json"); //Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                            request.Headers.TryAddWithoutValidation("Authorization", "key=" + SERVER_KEY);
 
-                    if (response != null)
-                    {
-                        if (response.IsSuccessStatusCode)
-                        {
-                            Console.WriteLine("Message sent: check client device notification tray");
+                            request.Content = new StringContent(jGcmData.ToString(), Encoding.UTF8, "application/json");
+
+                            using (var response = await client.SendAsync(request))
+                            {
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    Console.WriteLine("Message sent: check client device notification tray");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Message sent response: StatusCode = " + response.StatusCode.ToString() + " message = " + response.ToString());
+                                }
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine("Message sent response: StatusCode = " + response.StatusCode.ToString() + " message = " + response.ToString());
-                        }
-                    }
-                    else
-                    {
-                        Console.Error.WriteLine("Error sending message, return task=null");
                     }
                 }
             }
@@ -133,30 +128,15 @@ namespace NotificationFirebase.Droid
                 Console.WriteLine("Unable to send GCM message");
                 Console.Error.WriteLine(ex.StackTrace);
             }
-        }
 
-        /*void HandleAction(Task<HttpResponseMessage> response)
-        {
-            if(response != null)
-            {
-                HttpResponseMessage res = response.Result;
-                if(res.IsSuccessStatusCode)
-                {
-                    Console.WriteLine("Message sent: check client device notification tray");
-                }
-                else
-                {
-                    Console.WriteLine("Message sent response: StatusCode = " + res.StatusCode.ToString() + " message = " + res.ToString());
-                }
-            }
-            else
-            {
-                Console.Error.WriteLine("Error sending message, return task=null");
-            }
-        }*/
+            CrossHud.Current.Dismiss();
+        }
 
         public async void SignInAsync(string email, string password)
         {
+            var hud = CrossHud.Current;
+            hud.Show("Sign In", -1, MaskType.Clear, true);
+
             try
             {
                 FirebaseAuth mAuth = FirebaseAuth.Instance;
@@ -174,24 +154,36 @@ namespace NotificationFirebase.Droid
                         Latitud = 0.0f,
                         Longitud = 0.0f
                     };
+                    await UpdateUser(user);
+
+                    hud.Dismiss();
 
                     MessagingCenter.Send(user, NotificationFirebase.App.MessageSignIn);
-
-                    await UpdateUser(user);
+                    System.Console.WriteLine("SignIn sucess");
                 }
                 else
                 {
+                    hud.Dismiss();
                     MessagingCenter.Send("Fail to Sign In", NotificationFirebase.App.MessageSignInError);
+                    System.Console.WriteLine("Signn Fail");
                 }
             }
             catch(Exception ex)
             {
+                hud.Dismiss();
                 MessagingCenter.Send(ex.Message, NotificationFirebase.App.MessageSignInError);
                 System.Console.Error.WriteLine(ex.StackTrace);
             }
+            hud.Dismiss();
+            hud.Dispose();
+            hud = null;
         }
+
         public async void SignUpAsync(string email, string password)
         {
+            var hud = CrossHud.Current;
+            hud.Show("Sign Up", -1, MaskType.Clear, true);
+
             try
             {
                 FirebaseAuth mAuth = FirebaseAuth.Instance;
@@ -212,10 +204,12 @@ namespace NotificationFirebase.Droid
                     MessagingCenter.Send(user, NotificationFirebase.App.MessageSignUp);
 
                     await UpdateUser(user);
+                    System.Console.WriteLine("SignUp sucess");
                 }
                 else
                 {
                     MessagingCenter.Send("Fail to Sign Up", NotificationFirebase.App.MessageSignUpError);
+                    System.Console.WriteLine("SignUp Fail");
                 }
             }
             catch(Exception ex)
@@ -223,9 +217,14 @@ namespace NotificationFirebase.Droid
                 MessagingCenter.Send(ex.Message, NotificationFirebase.App.MessageSignUpError);
                 System.Console.Error.WriteLine(ex.StackTrace);
             }
+            hud.Dismiss();
+            hud.Dispose();
+            hud = null;
         }
         public void SignOut()
         {
+            var hud = CrossHud.Current;
+            hud.Show("Sign Up", -1, MaskType.Gradient, true);
             try
             {
                 FirebaseAuth mAuth = FirebaseAuth.Instance;
@@ -237,39 +236,101 @@ namespace NotificationFirebase.Droid
                 MessagingCenter.Send("Fail to Sign Out", NotificationFirebase.App.MessageSignOutError);
                 System.Console.Error.WriteLine(ex.StackTrace);
             }
+            hud.Dismiss();
+            hud.Dispose();
+            hud = null;
         }
 
-        public async void UpdateUserDeviceToken(string userid, string deviceToken)
+        public User GetCurrentUser()
         {
-            var mDatabase = FirebaseDatabase.Instance.Reference;
-            await mDatabase.Child("users").Child(userid).Child("DeviceToken").SetValueAsync(new Java.Lang.String(deviceToken));
-            await mDatabase.Child("users").Child(userid).Child("Plataforma").SetValueAsync(new Java.Lang.String(Platform.Android));
+            FirebaseAuth mAuth = FirebaseAuth.Instance;
+            if(mAuth.CurrentUser != null)
+            {
+                User user = new User
+                {
+                    Email = mAuth.CurrentUser.Email,
+                    Displayname = mAuth.CurrentUser.DisplayName,
+                    Uid = mAuth.CurrentUser.Uid,
+                    Plataforma = NotificationFirebase.Model.Platform.Android
+                };
+                return user;
+            }
+            return null;
+
+        }
+        /*bool IsUserLoggedIn()
+        {
+            return GetCurrentUser() != null;
+        }*/
+
+        bool IFirebaseManager.IsUserLoggedIn()
+        {
+            return GetCurrentUser() != null;
+        }
+
+        public async void UpdateUserDeviceToken()
+        {
+            try
+            {
+                var userid = FirebaseAuth.Instance.CurrentUser.Uid;
+                var token = CrossFirebasePushNotification.Current.Token;
+
+                var mDatabase = FirebaseDatabase.Instance.Reference;
+                var _ref = mDatabase.Child(UserTable.TableName).Child(userid);
+
+                await _ref.Child(UserTable.DeviceToken).SetValueAsync(new Java.Lang.String(token));
+                await _ref.Child(UserTable.Plataforma).SetValueAsync(new Java.Lang.String(Platform.Android));
+            }
+            catch(Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+            }
         }
 
         async System.Threading.Tasks.Task UpdateUser(User user)
         {
-            var mDatabase = FirebaseDatabase.Instance.Reference;
-            //var u = ConvertCsharpUserToJavaUser(user);
-            await mDatabase.Child("users").Child(user.Uid).Child("Plataforma").SetValueAsync(new Java.Lang.String(user.Plataforma));
-            await mDatabase.Child("users").Child(user.Uid).Child("DeviceToken").SetValueAsync(new Java.Lang.String(user.DeviceToken));
-            await mDatabase.Child("users").Child(user.Uid).Child("Latitud").SetValueAsync(new Java.Lang.Double(user.Latitud));
-            await mDatabase.Child("users").Child(user.Uid).Child("Longitud").SetValueAsync(new Java.Lang.Double(user.Longitud));
+            try
+            {
+                var mDatabase = FirebaseDatabase.Instance.Reference;
+                var _ref = mDatabase.Child(UserTable.TableName).Child(user.Uid);
+
+                await _ref.Child(UserTable.Plataforma).SetValueAsync(new Java.Lang.String(user.Plataforma));
+                await _ref.Child(UserTable.DeviceToken).SetValueAsync(new Java.Lang.String(user.DeviceToken));
+                await _ref.Child(UserTable.Latitud).SetValueAsync(new Java.Lang.Double(user.Latitud));
+                await _ref.Child(UserTable.Longitud).SetValueAsync(new Java.Lang.Double(user.Longitud));
+            }
+            catch(Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+            }
+
         }
 
-        NotificationFirebase.Droid.Model.User ConvertCsharpUserToJavaUser(NotificationFirebase.Model.User userCS)
+        public async void SendChatMessage(string message)
         {
-            NotificationFirebase.Droid.Model.User userJava = new NotificationFirebase.Droid.Model.User
+            try
             {
-                Displayname = new Java.Lang.String(userCS.Displayname),
-                Email = new Java.Lang.String(userCS.Email),
-                Uid = new Java.Lang.String(userCS.Uid),
+                var m = new ChatMessage(message, FirebaseAuth.Instance.CurrentUser.Email, "no photo", null);
 
-                Plataforma = new Java.Lang.String(userCS.Plataforma),
-                DeviceToken = new Java.Lang.String(userCS.DeviceToken),
-                Latitud = new Java.Lang.Double(userCS.Latitud),
-                Longitud = new Java.Lang.Double(userCS.Longitud)
-            };
-            return userJava;
+                using (var mFirebaseDatabse = FirebaseDatabase.Instance.Reference)
+                {
+                    await mFirebaseDatabse.Child(ChatMessageTable.TableName).Push().SetValueAsync(Model.HelperMap.ChatMessageModelToMap(m));
+                    /*
+                    using (var n = mFirebaseDatabse.Child(ChatMessageTable.TableName).Push())
+                    {
+                        System.Diagnostics.Debug.WriteLine(n.Key);
+
+                        await n.Child(ChatMessageTable.Text).SetValueAsync(new Java.Lang.String(m.Text));
+                        await n.Child(ChatMessageTable.Name).SetValueAsync(new Java.Lang.String(m.Name));
+                        await n.Child(ChatMessageTable.PhotoUrl).SetValueAsync(new Java.Lang.String(m.PhotoUrl));
+                    }
+                    */
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+            }
         }
 
         ValueEventListener valueEventListener = null;
@@ -296,6 +357,9 @@ namespace NotificationFirebase.Droid
                 .Child("users").OrderByKey()
                 .AddValueEventListener(
                     new ValueEventListener(distance, myLatitude, myLongitude)) as ValueEventListener;
+
+            //var _ref = mDatabase.Child("messages").OrderByKey();
+            //_ref.AddValueEventListener(()=>{});
         }
 
         public List<string> GetDeviceTokenUserListFromDistance(double distanceKm, List<User> users)

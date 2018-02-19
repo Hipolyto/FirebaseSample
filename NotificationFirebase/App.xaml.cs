@@ -26,25 +26,23 @@ namespace NotificationFirebase
         {
             InitializeComponent();
 
-            // MainPage = new NotificationFirebasePage();
+            IsUserLoggedIn = Xamarin.Forms.DependencyService.Get<DependencyService.IFirebaseManager>().IsUserLoggedIn();
+
             if(IsUserLoggedIn)
             {
                 MainPage = new MainPage();
             }
             else
             {
-                MainPage = new NavigationPage(new LoginPage());
+                //MainPage = new NavigationPage(new LoginPage());
+                MainPage = new LoginPage();
             }
         }
 
         protected override void OnStart()
         {
             // Handle when your app starts
-            CrossFirebasePushNotification.Current.Subscribe("general");
             CrossFirebasePushNotification.Current.OnTokenRefresh += Current_OnTokenRefresh;
-            System.Diagnostics.Debug.WriteLine($"TOKEN: {CrossFirebasePushNotification.Current.Token}");
-
-            // MessagingCenter.Subscribe<string>(this, App.MessageSignOut, SignOut);
         }
 
         protected override void OnSleep()
@@ -59,20 +57,11 @@ namespace NotificationFirebase
 
         void Current_OnTokenRefresh(object source, FirebasePushNotificationTokenEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"TOKEN: {CrossFirebasePushNotification.Current.Token}");
+
+            CrossFirebasePushNotification.Current.Subscribe("general");
+
             System.Diagnostics.Debug.WriteLine($"TOKEN REC: {e.Token}");
         }
-
-        /*void SignOut(string message)
-        {
-            try
-            {
-                MainPage = new NavigationPage(new LoginPage());
-                IsUserLoggedIn = false;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
-            }
-        }*/
     }
 }

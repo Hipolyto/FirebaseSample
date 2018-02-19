@@ -95,6 +95,8 @@
       <DependentUpon>..\..\MainMenu\MasterPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\MainMenu\MasterPageItem.cs" />
+    <Compile Include="Helpers\Settings.cs" />
+    <Compile Include="Model\ChatMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Xamarin.Forms.Core">
@@ -111,6 +113,18 @@
     </Reference>
     <Reference Include="Plugin.FirebasePushNotification">
       <HintPath>..\packages\Plugin.FirebasePushNotification.2.2.1\lib\netstandard1.0\Plugin.FirebasePushNotification.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Hud.Abstractions">
+      <HintPath>..\packages\Xam.Plugin.Hud.1.0.5\lib\portable-net45+wp80+win8+wpa81\Plugin.Hud.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Hud">
+      <HintPath>..\packages\Xam.Plugin.Hud.1.0.5\lib\portable-net45+wp80+win8+wpa81\Plugin.Hud.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Settings.Abstractions">
+      <HintPath>..\packages\Xam.Plugins.Settings.3.1.1\lib\netstandard1.0\Plugin.Settings.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Settings">
+      <HintPath>..\packages\Xam.Plugins.Settings.3.1.1\lib\netstandard1.0\Plugin.Settings.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

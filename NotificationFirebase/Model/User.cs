@@ -13,7 +13,6 @@ namespace NotificationFirebase.Model
         public string DeviceToken { get; set; }
         public double Latitud { get; set; }
         public double Longitud { get; set; }
-
     }
 
     public class Platform
@@ -21,5 +20,19 @@ namespace NotificationFirebase.Model
         public const string Android = "Android";
         public const string iOS = "iOS";
         public const string Windows = "Windows";
+    }
+
+    public static class UserTable
+    {
+        public const string TableName = "user";
+
+        public const string Uid = "Uid";
+        public const string DisplayName = "DisplayName";
+        public const string Email = "name";
+
+        public const string Plataforma = "Plataforma";
+        public const string DeviceToken = "DeviceToken";
+        public const string Latitud = "Latitud";
+        public const string Longitud = "Longitud";
     }
 }

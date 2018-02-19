@@ -96,5 +96,11 @@ namespace NotificationFirebase.View
             double myLongitude = 0.0f;
             Xamarin.Forms.DependencyService.Get<IFirebaseManager>().SendNotificationToNearestDevices(5.0f, myLatitude, myLongitude);
         }
+
+        void Handle_ClickedSendChatMessage(object sender, System.EventArgs e)
+        {
+            string s = txtTextMessage.Text;
+            Xamarin.Forms.DependencyService.Get<IFirebaseManager>().SendChatMessage(s);
+        }
     }
 }

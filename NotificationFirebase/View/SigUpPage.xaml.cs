@@ -24,26 +24,29 @@ namespace NotificationFirebase.View
             Xamarin.Forms.DependencyService.Get<IFirebaseManager>().SignUpAsync(emailEntry.Text, passwordEntry.Text);
         }
 
-        async void SignUp(User user)
+        void SignUp(User user)
         {
-            // Sign up logic goes here
-            var rootPage = Navigation.NavigationStack.FirstOrDefault();
-            if (rootPage != null)
+            try
             {
                 App.IsUserLoggedIn = true;
-                //Navigation.InsertPageBefore(new MainPage(), Navigation.NavigationStack.First());
-                //await Navigation.PopToRootAsync();
-                if (Xamarin.Forms.Device.OS == Xamarin.Forms.TargetPlatform.iOS)
+                Device.BeginInvokeOnMainThread(() =>
                 {
-                    await Navigation.PopToRootAsync();
-                }
-                Application.Current.MainPage = new MainPage();
+                    //await Navigation.PushModalAsync(new MainPage());
+                    Application.Current.MainPage = new MainPage();
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
             }
         }
 
         void SignUpError(string erorMessage)
         {
-            messageLabel.Text = erorMessage;
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                messageLabel.Text = erorMessage;
+            });
         }
     }
 }

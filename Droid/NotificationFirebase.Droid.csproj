@@ -158,6 +158,23 @@
     <Reference Include="Xamarin.Firebase.Database">
       <HintPath>..\packages\Xamarin.Firebase.Database.60.1142.0\lib\MonoAndroid80\Xamarin.Firebase.Database.dll</HintPath>
     </Reference>
+    <Reference Include="AndHUD">
+      <HintPath>..\packages\AndHUD.1.2.0\lib\MonoAndroid\AndHUD.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Hud.Abstractions">
+      <HintPath>..\packages\Xam.Plugin.Hud.1.0.5\lib\MonoAndroid10\Plugin.Hud.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Hud">
+      <HintPath>..\packages\Xam.Plugin.Hud.1.0.5\lib\MonoAndroid10\Plugin.Hud.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Settings.Abstractions">
+      <HintPath>..\packages\Xam.Plugins.Settings.3.1.1\lib\MonoAndroid10\Plugin.Settings.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Settings">
+      <HintPath>..\packages\Xam.Plugins.Settings.3.1.1\lib\MonoAndroid10\Plugin.Settings.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NotificationFirebase\NotificationFirebase.csproj">
@@ -173,6 +190,9 @@
     <Compile Include="DependencyService\FirebaseManagerImplementation.cs" />
     <Compile Include="DependencyService\FirebaseAuthListener.cs" />
     <Compile Include="Model\User.cs" />
+    <Compile Include="Helpers\Settings.cs" />
+    <Compile Include="Model\ChatMessage.cs" />
+    <Compile Include="Model\HelperMap.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />

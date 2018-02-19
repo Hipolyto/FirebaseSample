@@ -38,8 +38,25 @@ namespace NotificationFirebase.View
         {
             try
             {
-                Application.Current.MainPage = new NavigationPage(new LoginPage());
                 App.IsUserLoggedIn = false;
+                Device.BeginInvokeOnMainThread(async () =>
+                {
+                    if (Navigation.NavigationStack.Count == 0)
+                    {
+                        await Navigation.PushModalAsync(new LoginPage(), false);
+                    }
+                    else
+                    {
+                        await Navigation.PopModalAsync(false);
+                    }
+
+
+
+                    if(Device.OS == TargetPlatform.Android)
+                    {
+                        //Application.Current.MainPage = new LoginPage();
+                    }
+                });
             }
             catch(Exception ex)
             {

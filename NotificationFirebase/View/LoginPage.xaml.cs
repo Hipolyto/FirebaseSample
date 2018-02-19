@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Xamarin.Forms;
 using NotificationFirebase.Model;
 using NotificationFirebase.DependencyService;
+using System.Threading.Tasks;
 
 namespace NotificationFirebase.View
 {
@@ -12,6 +13,8 @@ namespace NotificationFirebase.View
         public LoginPage()
         {
             InitializeComponent();
+
+            NavigationPage.SetHasNavigationBar(this, true);
 
             MessagingCenter.Subscribe<User>(this, App.MessageSignIn, SignIn);
             MessagingCenter.Subscribe<string>(this, App.MessageSignInError, SignInError);
@@ -27,21 +30,40 @@ namespace NotificationFirebase.View
             Xamarin.Forms.DependencyService.Get<IFirebaseManager>().SignInAsync(emailEntry.Text, passwordEntry.Text);
         }
 
-        async void SignIn(User user)
+        void SignIn(User user)
         {
-            App.IsUserLoggedIn = true;
-            //Navigation.InsertPageBefore(new MainPage(), this);
-            //await Navigation.PopAsync();
-            if (Xamarin.Forms.Device.OS == Xamarin.Forms.TargetPlatform.iOS)
+            try
             {
-                await Navigation.PopToRootAsync();
+                App.IsUserLoggedIn = true;
+                Device.BeginInvokeOnMainThread(async () =>
+                {
+                    if(Navigation.NavigationStack.Count == 0)
+                    {
+                        await Navigation.PushModalAsync(new MainPage(), false);
+                    }
+                    else
+                    {
+                        await Navigation.PopModalAsync(false);
+                    }
+
+                    if(Device.OS == TargetPlatform.Android)
+                    {
+                        //Application.Current.MainPage = new MainPage();
+                    }
+                });
             }
-            Application.Current.MainPage = new MainPage();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+            }
         }
 
         void SignInError(string erorMessage)
         {
-            messageLabel.Text = erorMessage;
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                messageLabel.Text = erorMessage;
+            });
         }
     }
 }
